@@ -1,6 +1,6 @@
 # YouVersion Python SDK
 
-The official Python SDK for the YouVersion API. Access Bible versions, books, chapters, verses, and passages programmatically.
+The un-official Python SDK for the YouVersion API. Access Bible versions, books, chapters, verses, and passages programmatically.
 
 [![PyPI version](https://badge.fury.io/py/youversion.svg)](https://badge.fury.io/py/youversion)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
