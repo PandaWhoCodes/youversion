@@ -18,7 +18,7 @@ from youversion.bibles.models import (
     BibleVersion,
     PaginatedResponse,
 )
-from youversion.core.result import is_ok, is_err
+from youversion.core.result import is_err, is_ok
 
 pytestmark = pytest.mark.live
 
