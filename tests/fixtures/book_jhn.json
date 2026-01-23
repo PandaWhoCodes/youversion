@@ -1,0 +1,12 @@
+{
+  "id": "JHN",
+  "title": "John",
+  "full_title": "John",
+  "abbreviation": "John",
+  "canon": "new_testament",
+  "chapters": [
+    {"id": "1", "passage_id": "JHN.1", "title": "1"},
+    {"id": "2", "passage_id": "JHN.2", "title": "2"},
+    {"id": "3", "passage_id": "JHN.3", "title": "3"}
+  ]
+}

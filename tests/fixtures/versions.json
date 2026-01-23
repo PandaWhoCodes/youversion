@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "id": 111,
+      "abbreviation": "NIV",
+      "title": "New International Version",
+      "language_tag": "en",
+      "copyright_short": "© Biblica"
+    },
+    {
+      "id": 59,
+      "abbreviation": "ESV",
+      "title": "English Standard Version",
+      "language_tag": "en",
+      "copyright_short": "© Crossway"
+    }
+  ],
+  "next_page_token": null,
+  "total_count": 2
+}

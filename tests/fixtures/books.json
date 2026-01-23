@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "id": "GEN",
+      "title": "Genesis",
+      "abbreviation": "Gen",
+      "canon": "old_testament"
+    },
+    {
+      "id": "EXO",
+      "title": "Exodus",
+      "abbreviation": "Exod",
+      "canon": "old_testament"
+    }
+  ]
+}
