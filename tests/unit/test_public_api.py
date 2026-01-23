@@ -77,7 +77,7 @@ def test_main_package_exports_version() -> None:
     from youversion import __version__
 
     assert isinstance(__version__, str)
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.1.2"
 
 
 def test_core_module_exports() -> None:

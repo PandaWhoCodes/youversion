@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "youversion"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python SDK for YouVersion API"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [
-    { name = "Ashish", email = "ashish@example.com" }
+    { name = "Ashish" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
