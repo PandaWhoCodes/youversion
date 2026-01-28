@@ -1,0 +1,15 @@
+{
+  "id": "en",
+  "language": "eng",
+  "script": "Latn",
+  "script_name": "Latin",
+  "aliases": ["english"],
+  "display_names": {"en": "English", "es": "Inglés"},
+  "scripts": ["Latn"],
+  "variants": [],
+  "countries": ["US", "GB"],
+  "text_direction": "ltr",
+  "writing_population": 400000000,
+  "speaking_population": 1500000000,
+  "default_bible_id": 111
+}

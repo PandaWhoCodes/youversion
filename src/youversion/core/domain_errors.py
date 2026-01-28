@@ -10,7 +10,9 @@ from pydantic import BaseModel
 class NotFoundError(BaseModel, frozen=True):
     """Resource not found error."""
 
-    resource: Literal["version", "book", "chapter", "verse", "passage", "language", "highlight"]
+    resource: Literal[
+        "version", "book", "chapter", "verse", "passage", "language", "highlight", "organization"
+    ]
     identifier: str
     message: str
 

@@ -30,10 +30,12 @@ class AsyncHTTPAdapter:
             },
         )
 
-    async def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+    async def get(
+        self, path: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None
+    ) -> httpx.Response:
         """Make a GET request."""
         try:
-            response = await self._client.get(path, params=params)
+            response = await self._client.get(path, params=params, headers=headers)
         except httpx.TimeoutException as e:
             raise NetworkError(f"Request timed out: {e}") from e
         except httpx.ConnectError as e:
@@ -68,12 +70,7 @@ class AsyncHTTPAdapter:
 
 
 class SyncHTTPAdapter:
-    """Synchronous HTTP adapter that wraps sync calls as awaitables.
-
-    This adapter uses httpx's sync client but provides an async-compatible
-    interface by returning immediate awaitables. This allows the async-first
-    mixin to work with both sync and async clients.
-    """
+    """Synchronous HTTP adapter using httpx."""
 
     def __init__(self, api_key: str, base_url: str, timeout: float) -> None:
         self._api_key = api_key
@@ -88,10 +85,12 @@ class SyncHTTPAdapter:
             },
         )
 
-    async def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
-        """Make a GET request - sync call wrapped as awaitable."""
+    def get(
+        self, path: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None
+    ) -> httpx.Response:
+        """Make a GET request."""
         try:
-            response = self._client.get(path, params=params)
+            response = self._client.get(path, params=params, headers=headers)
         except httpx.TimeoutException as e:
             raise NetworkError(f"Request timed out: {e}") from e
         except httpx.ConnectError as e:
@@ -120,6 +119,6 @@ class SyncHTTPAdapter:
                 status_code=response.status_code,
             )
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
