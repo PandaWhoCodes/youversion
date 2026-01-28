@@ -11,6 +11,7 @@ from youversion.bibles import (
 )
 from youversion.languages.models import Language
 from youversion.licenses.models import License
+from youversion.organizations.models import Organization, OrganizationAddress
 from youversion.core import (
     AsyncYouVersionClient,
     AuthenticationError,
@@ -48,6 +49,9 @@ __all__ = [
     "Language",
     # License models
     "License",
+    # Organization models
+    "Organization",
+    "OrganizationAddress",
     # Result types
     "Ok",
     "Err",
