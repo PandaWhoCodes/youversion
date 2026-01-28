@@ -43,18 +43,20 @@ with YouVersionClient(API_KEY) as client:
             org_id = org.id  # Save for later
             print(f"   Organization: {org.name}")
             print(f"   ID:           {org.id}")
-            print(f"   Description:  {org.description[:80]}..." if len(org.description) > 80 else f"   Description:  {org.description}")
+            if org.description:
+                print(f"   Description:  {org.description[:80]}..." if len(org.description) > 80 else f"   Description:  {org.description}")
             print(f"   Website:      {org.website_url}")
             print(f"   Language:     {org.primary_language}")
             if org.email:
                 print(f"   Email:        {org.email}")
             print()
 
-            # Show address
-            addr = org.address
-            print(f"   Address:      {addr.formatted_address}")
-            print(f"   Location:     {addr.locality}, {addr.country}")
-            print(f"   Coordinates:  ({addr.latitude}, {addr.longitude})")
+            # Show address if available
+            if org.address:
+                addr = org.address
+                print(f"   Address:      {addr.formatted_address}")
+                print(f"   Location:     {addr.locality}, {addr.country}")
+                print(f"   Coordinates:  ({addr.latitude}, {addr.longitude})")
             print()
     else:
         print(f"   Error: {result.error}")
@@ -111,14 +113,18 @@ with YouVersionClient(API_KEY) as client:
     # 5. Try a non-existent organization
     print("\n" + "=" * 60)
     print("\n5. Trying to get a non-existent organization...")
-    result = client.get_organization("00000000-0000-0000-0000-000000000000")
-
-    if is_err(result):
-        error = result.error
-        print(f"   Expected error: {error.resource} not found")
-        print(f"   Message: {error.message}")
-    else:
-        print("   Unexpectedly found the organization!")
+    from youversion import ServerError
+    try:
+        result = client.get_organization("00000000-0000-0000-0000-000000000000")
+        if is_err(result):
+            error = result.error
+            print(f"   Expected error: {error.resource} not found")
+            print(f"   Message: {error.message}")
+        else:
+            print("   Unexpectedly found the organization!")
+    except ServerError as e:
+        print(f"   Server returned error (API returns 500 for invalid UUIDs)")
+        print(f"   Error: {e}")
 
 print("\n" + "=" * 60)
 print("Organizations API example complete!")

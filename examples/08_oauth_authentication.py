@@ -13,7 +13,7 @@ SETUP REQUIRED:
 2. Create or edit your app
 3. Add callback URL: http://localhost:8765/callback
    (or http://127.0.0.1:8765/callback)
-4. Copy your API key (this is also your client_id)
+4. Copy your API key (used for both API calls and OAuth)
 
 Usage:
     export YOUVERSION_API_KEY="your-api-key"
@@ -34,8 +34,8 @@ from typing import Any
 import httpx
 
 # Configuration
-# The API key from Platform Portal is also your client_id for OAuth
-CLIENT_ID = "your-client-id"
+# The API key from Platform Portal is used for both API calls and OAuth
+API_KEY = "your-api-key"
 REDIRECT_URI = "http://localhost:8765/callback"  # Must match registered callback in Platform Portal
 AUTH_BASE_URL = "https://api.youversion.com/auth"
 
@@ -243,25 +243,22 @@ def main() -> None:
     """Main entry point."""
     import os
 
-    # Try CLIENT_ID first, then API_KEY as fallback (may be the same)
-    client_id = os.environ.get("YOUVERSION_CLIENT_ID") or os.environ.get("YOUVERSION_API_KEY") or CLIENT_ID
+    api_key = os.environ.get("YOUVERSION_API_KEY") or API_KEY
 
-    if client_id == "your-client-id":
+    if api_key == "your-api-key":
         print("=" * 60)
         print("YouVersion OAuth Sign-In")
         print("=" * 60)
-        print("\nPlease set your client_id:")
-        print("  export YOUVERSION_CLIENT_ID='your-client-id'")
-        print("  # or if same as API key:")
+        print("\nPlease set your API key:")
         print("  export YOUVERSION_API_KEY='your-api-key'")
-        print("\nGet it from: https://developers.youversion.com")
+        print("\nGet it from: https://platform.youversion.com/platform/apps")
         return
 
     print("=" * 60)
     print("YouVersion OAuth Sign-In (2-Step Flow)")
     print("=" * 60)
 
-    result = run_auth_flow(client_id)
+    result = run_auth_flow(api_key)
 
     if result:
         user_info, tokens = result

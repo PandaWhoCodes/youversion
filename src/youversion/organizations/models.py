@@ -21,9 +21,9 @@ class Organization(BaseModel):
     id: str  # UUID
     parent_organization_id: str | None = None
     name: str
-    description: str
+    description: str = ""
     email: str | None = None
     phone: str | None = None
-    primary_language: str
-    website_url: str
-    address: OrganizationAddress
+    primary_language: str = ""
+    website_url: str = ""
+    address: OrganizationAddress | None = None
