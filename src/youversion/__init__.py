@@ -9,6 +9,7 @@ from youversion.bibles import (
     BibleVersion,
     PaginatedResponse,
 )
+from youversion.languages.models import Language
 from youversion.core import (
     AsyncYouVersionClient,
     AuthenticationError,
@@ -42,6 +43,8 @@ __all__ = [
     "BibleVerse",
     "BiblePassage",
     "PaginatedResponse",
+    # Language models
+    "Language",
     # Result types
     "Ok",
     "Err",
