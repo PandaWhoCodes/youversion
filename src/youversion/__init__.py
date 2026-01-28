@@ -10,6 +10,7 @@ from youversion.bibles import (
     PaginatedResponse,
 )
 from youversion.languages.models import Language
+from youversion.licenses.models import License
 from youversion.core import (
     AsyncYouVersionClient,
     AuthenticationError,
@@ -45,6 +46,8 @@ __all__ = [
     "PaginatedResponse",
     # Language models
     "Language",
+    # License models
+    "License",
     # Result types
     "Ok",
     "Err",

@@ -14,6 +14,7 @@ from youversion.bibles.models import (
 )
 from youversion.core.domain_errors import NotFoundError, ValidationError
 from youversion.languages.models import Language
+from youversion.licenses.models import License
 from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
 from youversion.core.result import Err, Ok, Result
 
@@ -260,6 +261,26 @@ class YouVersionClient:
 
         return Ok(Language.model_validate(response.json()))
 
+    # License methods
+    def get_licenses(
+        self,
+        bible_id: int,
+        developer_id: str,
+        *,
+        all_available: bool = False,
+    ) -> Result[PaginatedResponse[License], None]:
+        """Get licenses for a Bible."""
+        params: dict[str, Any] = {
+            "bible_id": bible_id,
+            "developer_id": developer_id,
+        }
+        if all_available:
+            params["all_available"] = "true"
+
+        response = self._http.get("/v1/licenses", params=params)
+        data = response.json()
+        return Ok(PaginatedResponse[License].model_validate(data))
+
 
 class AsyncYouVersionClient:
     """Asynchronous YouVersion API client."""
@@ -496,3 +517,23 @@ class AsyncYouVersionClient:
             )
 
         return Ok(Language.model_validate(response.json()))
+
+    # License methods
+    async def get_licenses(
+        self,
+        bible_id: int,
+        developer_id: str,
+        *,
+        all_available: bool = False,
+    ) -> Result[PaginatedResponse[License], None]:
+        """Get licenses for a Bible."""
+        params: dict[str, Any] = {
+            "bible_id": bible_id,
+            "developer_id": developer_id,
+        }
+        if all_available:
+            params["all_available"] = "true"
+
+        response = await self._http.get("/v1/licenses", params=params)
+        data = response.json()
+        return Ok(PaginatedResponse[License].model_validate(data))

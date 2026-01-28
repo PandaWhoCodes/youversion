@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Standard License",
+      "version": 1,
+      "organization_id": "550e8400-e29b-41d4-a716-446655440000",
+      "html": "<p>License terms...</p>",
+      "bible_ids": [111, 112],
+      "uri": "https://example.com/license",
+      "agreed_dt": "2024-01-15T10:30:00Z",
+      "yvp_user_id": "user-uuid-123"
+    }
+  ],
+  "next_page_token": null
+}
