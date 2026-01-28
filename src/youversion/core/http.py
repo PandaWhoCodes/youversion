@@ -68,12 +68,7 @@ class AsyncHTTPAdapter:
 
 
 class SyncHTTPAdapter:
-    """Synchronous HTTP adapter that wraps sync calls as awaitables.
-
-    This adapter uses httpx's sync client but provides an async-compatible
-    interface by returning immediate awaitables. This allows the async-first
-    mixin to work with both sync and async clients.
-    """
+    """Synchronous HTTP adapter using httpx."""
 
     def __init__(self, api_key: str, base_url: str, timeout: float) -> None:
         self._api_key = api_key
@@ -88,8 +83,8 @@ class SyncHTTPAdapter:
             },
         )
 
-    async def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
-        """Make a GET request - sync call wrapped as awaitable."""
+    def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+        """Make a GET request."""
         try:
             response = self._client.get(path, params=params)
         except httpx.TimeoutException as e:
@@ -120,6 +115,6 @@ class SyncHTTPAdapter:
                 status_code=response.status_code,
             )
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
