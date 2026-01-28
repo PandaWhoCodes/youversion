@@ -13,6 +13,7 @@ from youversion.bibles.models import (
     PaginatedResponse,
 )
 from youversion.core.domain_errors import NotFoundError, ValidationError
+from youversion.languages.models import Language
 from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
 from youversion.core.result import Err, Ok, Result
 
@@ -223,6 +224,42 @@ class YouVersionClient:
 
         return Ok(BiblePassage.model_validate(response.json()))
 
+    # Language methods
+    def get_languages(
+        self,
+        *,
+        country: str | None = None,
+        page_size: int | None = None,
+        page_token: str | None = None,
+    ) -> Result[PaginatedResponse[Language], None]:
+        """Get available languages."""
+        params: dict[str, Any] = {}
+        if country is not None:
+            params["country"] = country
+        if page_size is not None:
+            params["page_size"] = page_size
+        if page_token is not None:
+            params["page_token"] = page_token
+
+        response = self._http.get("/v1/languages", params=params if params else None)
+        data = response.json()
+        return Ok(PaginatedResponse[Language].model_validate(data))
+
+    def get_language(self, language_id: str) -> Result[Language, NotFoundError]:
+        """Get a specific language by BCP 47 tag."""
+        response = self._http.get(f"/v1/languages/{language_id}")
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="language",
+                    identifier=language_id,
+                    message=f"Language {language_id} not found",
+                )
+            )
+
+        return Ok(Language.model_validate(response.json()))
+
 
 class AsyncYouVersionClient:
     """Asynchronous YouVersion API client."""
@@ -423,3 +460,39 @@ class AsyncYouVersionClient:
             return Err(ValidationError(field="usfm", reason="Invalid USFM format"))
 
         return Ok(BiblePassage.model_validate(response.json()))
+
+    # Language methods
+    async def get_languages(
+        self,
+        *,
+        country: str | None = None,
+        page_size: int | None = None,
+        page_token: str | None = None,
+    ) -> Result[PaginatedResponse[Language], None]:
+        """Get available languages."""
+        params: dict[str, Any] = {}
+        if country is not None:
+            params["country"] = country
+        if page_size is not None:
+            params["page_size"] = page_size
+        if page_token is not None:
+            params["page_token"] = page_token
+
+        response = await self._http.get("/v1/languages", params=params if params else None)
+        data = response.json()
+        return Ok(PaginatedResponse[Language].model_validate(data))
+
+    async def get_language(self, language_id: str) -> Result[Language, NotFoundError]:
+        """Get a specific language by BCP 47 tag."""
+        response = await self._http.get(f"/v1/languages/{language_id}")
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="language",
+                    identifier=language_id,
+                    message=f"Language {language_id} not found",
+                )
+            )
+
+        return Ok(Language.model_validate(response.json()))
