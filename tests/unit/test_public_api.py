@@ -116,3 +116,20 @@ def test_bibles_module_exports() -> None:
     assert BibleVerse is not None
     assert BiblePassage is not None
     assert PaginatedResponse is not None
+
+
+def test_main_package_exports_new_models() -> None:
+    """Main package exports Language, License, Organization, and VOTD models."""
+    from youversion import (
+        Language,
+        License,
+        Organization,
+        OrganizationAddress,
+        VerseOfTheDay,
+    )
+
+    assert Language is not None
+    assert License is not None
+    assert Organization is not None
+    assert OrganizationAddress is not None
+    assert VerseOfTheDay is not None
