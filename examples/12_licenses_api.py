@@ -6,10 +6,14 @@ This example demonstrates how to:
 2. Check if you have agreed to a license
 3. Get all available licenses for a Bible
 
-Note: The Licenses API requires:
-- Your API key
-- Your developer ID (UUID from the Platform Portal)
-- A bible_id to check licenses for
+IMPORTANT: The Licenses API may require:
+- OAuth authentication (user sign-in) rather than just API key
+- Special permissions granted to your app
+- Contact YouVersion developer support if you get "Invalid ApiKey for given resource"
+
+Required environment variables:
+- YOUVERSION_API_KEY - your API key
+- YOUVERSION_DEVELOPER_ID - your developer UUID from https://platform.youversion.com/platform/apps
 
 Usage:
     export YOUVERSION_API_KEY="your-api-key"
@@ -30,7 +34,9 @@ if not API_KEY:
 
 if not DEVELOPER_ID:
     print("Please set YOUVERSION_DEVELOPER_ID environment variable")
-    print("Get your developer ID from: https://developers.youversion.com")
+    print("Get your developer ID (UUID) from: https://platform.youversion.com/platform/apps")
+    print("Look for 'Developer ID' in your app settings")
+    print("Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
     exit(1)
 
 print("=" * 60)
@@ -41,10 +47,21 @@ print("=" * 60)
 NIV_BIBLE_ID = 111
 KJV_BIBLE_ID = 1
 
+from youversion import AuthenticationError
+
 with YouVersionClient(API_KEY) as client:
     # 1. Get licenses for NIV Bible
     print(f"\n1. Getting licenses for Bible ID {NIV_BIBLE_ID} (NIV)...")
-    result = client.get_licenses(bible_id=NIV_BIBLE_ID, developer_id=DEVELOPER_ID)
+    try:
+        result = client.get_licenses(bible_id=NIV_BIBLE_ID, developer_id=DEVELOPER_ID)
+    except AuthenticationError:
+        print("   ERROR: Authentication failed for Licenses API")
+        print("   This API may require OAuth authentication or special permissions.")
+        print("   See: https://developers.youversion.com/sign-in-apis")
+        print("\n" + "=" * 60)
+        print("Licenses API requires additional setup - example cannot continue.")
+        print("=" * 60)
+        exit(1)
 
     if is_ok(result):
         licenses = result.value.data
