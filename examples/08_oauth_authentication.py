@@ -1,154 +1,123 @@
 #!/usr/bin/env python3
-"""OAuth authentication with YouVersion API using PKCE flow.
+"""YouVersion OAuth Sign-In - Simple 2-step authentication flow.
 
-This example demonstrates how to:
-1. Start a local HTTP server to receive the OAuth callback
-2. Generate PKCE code verifier and challenge
-3. Open the browser for user authentication
-4. Exchange the authorization code for JWT tokens
-5. Use the access token to make authenticated API calls
+Based on: https://developers.youversion.com/sign-in-apis
+
+Flow:
+1. User visits authorize URL → logs in at login.youversion.com → redirects back
+   with user data (yvp_id, user_name, user_email, profile_picture) as query params
+2. Post user data to /auth/callback → get auth code → exchange for JWT tokens
 
 Usage:
+    export YOUVERSION_CLIENT_ID="your-client-id"
     python examples/08_oauth_authentication.py
 
-Requirements:
-    - YOUVERSION_CLIENT_ID environment variable (your app's client ID from Platform Portal)
-    - A registered redirect URI of http://localhost:8080/callback in your app settings
+Get your client_id from: https://developers.youversion.com (Platform Portal)
 """
 
 import base64
 import hashlib
 import http.server
-import os
 import secrets
 import socketserver
 import threading
 import urllib.parse
 import webbrowser
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
-# Configuration
-CLIENT_ID = os.environ.get("YOUVERSION_CLIENT_ID", "your-client-id")
+# Configuration - get client_id from Platform Portal
+CLIENT_ID = "your-client-id"  # Replace with your client_id or set via env
 REDIRECT_URI = "http://localhost:8080/callback"
 AUTH_BASE_URL = "https://api.youversion.com/auth"
-SCOPES = "openid profile email"
 
 
 @dataclass
-class TokenResponse:
-    """OAuth token response."""
+class UserInfo:
+    """User information from YouVersion sign-in."""
+
+    yvp_id: str
+    user_name: str
+    user_email: str
+    profile_picture: str
+
+
+@dataclass
+class Tokens:
+    """JWT tokens from authentication."""
 
     access_token: str
     id_token: str
     refresh_token: str
-    token_type: str
     expires_in: int
 
 
-class OAuthCallbackHandler(http.server.SimpleHTTPRequestHandler):
-    """HTTP handler to capture OAuth callback."""
+class CallbackHandler(http.server.SimpleHTTPRequestHandler):
+    """Simple HTTP handler to capture the OAuth callback."""
 
-    auth_code: str | None = None
-    user_data: dict[str, str] | None = None
+    user_info: UserInfo | None = None
     error: str | None = None
+    received: threading.Event = threading.Event()
 
     def do_GET(self) -> None:
-        """Handle GET request from OAuth callback."""
+        """Handle GET request - capture user data from callback."""
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == "/callback":
-            query = urllib.parse.parse_qs(parsed.query)
-
-            # Check for error
-            if "error" in query:
-                OAuthCallbackHandler.error = query.get("error", ["Unknown error"])[0]
-                self._send_response("Authentication failed. You can close this window.")
-                return
-
-            # Capture user data from callback
-            OAuthCallbackHandler.user_data = {
-                "yvp_id": query.get("yvp_id", [""])[0],
-                "user_name": query.get("user_name", [""])[0],
-                "user_email": query.get("user_email", [""])[0],
-                "profile_picture": query.get("profile_picture", [""])[0],
-            }
-
-            self._send_response(
-                "Authentication successful! You can close this window and return to the terminal."
-            )
-        else:
+        if parsed.path != "/callback":
             self.send_error(404)
+            return
 
-    def _send_response(self, message: str) -> None:
-        """Send HTML response."""
+        query = urllib.parse.parse_qs(parsed.query)
+
+        # Check for error
+        if "error" in query:
+            CallbackHandler.error = query.get("error", ["Unknown"])[0]
+            self._respond("Authentication failed. Check terminal.")
+            CallbackHandler.received.set()
+            return
+
+        # Extract user data from query params
+        CallbackHandler.user_info = UserInfo(
+            yvp_id=query.get("yvp_id", [""])[0],
+            user_name=query.get("user_name", [""])[0],
+            user_email=query.get("user_email", [""])[0],
+            profile_picture=query.get("profile_picture", [""])[0],
+        )
+
+        self._respond("Success! You can close this tab.")
+        CallbackHandler.received.set()
+
+    def _respond(self, message: str) -> None:
+        """Send simple HTML response."""
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head><title>YouVersion OAuth</title></head>
-        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-            <h1>{message}</h1>
-        </body>
-        </html>
-        """
+        html = f"<html><body style='font-family:sans-serif;text-align:center;padding:50px'><h2>{message}</h2></body></html>"
         self.wfile.write(html.encode())
 
-    def log_message(self, format: str, *args: object) -> None:
-        """Suppress default logging."""
+    def log_message(self, format: str, *args: Any) -> None:
+        """Suppress logging."""
         pass
 
 
-def generate_pkce_pair() -> tuple[str, str]:
-    """Generate PKCE code verifier and challenge.
-
-    Returns:
-        Tuple of (code_verifier, code_challenge)
-    """
-    # Generate random code verifier (43-128 characters)
-    code_verifier = secrets.token_urlsafe(32)
-
-    # Create SHA256 hash and base64url encode it
-    digest = hashlib.sha256(code_verifier.encode()).digest()
-    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
-
-    return code_verifier, code_challenge
+def generate_pkce() -> tuple[str, str]:
+    """Generate PKCE code_verifier and code_challenge."""
+    verifier = secrets.token_urlsafe(32)
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).rstrip(b"=").decode()
+    return verifier, challenge
 
 
-def start_callback_server(port: int = 8080) -> socketserver.TCPServer:
-    """Start local HTTP server to receive OAuth callback.
-
-    Args:
-        port: Port to listen on (default: 8080)
-
-    Returns:
-        The running server instance
-    """
-    server = socketserver.TCPServer(("", port), OAuthCallbackHandler)
-    thread = threading.Thread(target=server.handle_request, daemon=True)
-    thread.start()
-    return server
-
-
-def build_authorization_url(client_id: str, code_challenge: str, state: str) -> str:
-    """Build the authorization URL for user login.
-
-    Args:
-        client_id: Your app's client ID
-        code_challenge: PKCE code challenge
-        state: Random state for CSRF protection
-
-    Returns:
-        Full authorization URL
-    """
+def build_auth_url(client_id: str, code_challenge: str, state: str) -> str:
+    """Build the authorization URL."""
     params = {
         "response_type": "code",
         "client_id": client_id,
         "redirect_uri": REDIRECT_URI,
-        "scope": SCOPES,
+        "scope": "openid profile email",
         "code_challenge": code_challenge,
         "code_challenge_method": "S256",
         "state": state,
@@ -157,21 +126,33 @@ def build_authorization_url(client_id: str, code_challenge: str, state: str) -> 
     return f"{AUTH_BASE_URL}/authorize?" + urllib.parse.urlencode(params)
 
 
-def exchange_code_for_tokens(
-    auth_code: str, code_verifier: str, client_id: str
-) -> TokenResponse:
-    """Exchange authorization code for access tokens.
-
-    Args:
-        auth_code: Authorization code from callback
-        code_verifier: PKCE code verifier
-        client_id: Your app's client ID
-
-    Returns:
-        TokenResponse with access_token, id_token, refresh_token
+def exchange_for_tokens(
+    user_info: UserInfo, code_verifier: str, client_id: str
+) -> Tokens:
     """
-    with httpx.Client() as client:
-        response = client.post(
+    Step 2: Exchange user data for tokens.
+
+    1. Post user data to /auth/callback to get authorization code
+    2. Exchange code for JWT tokens
+    """
+    with httpx.Client() as http:
+        # Step 2a: Post user data to get auth code
+        callback_resp = http.post(
+            f"{AUTH_BASE_URL}/callback",
+            json={
+                "client_id": client_id,
+                "redirect_uri": REDIRECT_URI,
+                "yvp_id": user_info.yvp_id,
+                "user_name": user_info.user_name,
+                "user_email": user_info.user_email,
+                "profile_picture": user_info.profile_picture,
+            },
+        )
+        callback_resp.raise_for_status()
+        auth_code = callback_resp.json()["code"]
+
+        # Step 2b: Exchange code for tokens
+        token_resp = http.post(
             f"{AUTH_BASE_URL}/token",
             data={
                 "grant_type": "authorization_code",
@@ -181,118 +162,120 @@ def exchange_code_for_tokens(
                 "code_verifier": code_verifier,
             },
         )
-        response.raise_for_status()
-        data = response.json()
+        token_resp.raise_for_status()
+        data = token_resp.json()
 
-        return TokenResponse(
+        return Tokens(
             access_token=data["access_token"],
             id_token=data["id_token"],
             refresh_token=data["refresh_token"],
-            token_type=data.get("token_type", "Bearer"),
             expires_in=data.get("expires_in", 3600),
         )
 
 
-def get_auth_code_from_callback(user_data: dict[str, str], client_id: str) -> str:
-    """Post user data to callback endpoint to get authorization code.
-
-    Args:
-        user_data: User data received from authorize redirect
-        client_id: Your app's client ID
-
-    Returns:
-        Authorization code
+def run_auth_flow(client_id: str) -> tuple[UserInfo, Tokens] | None:
     """
-    with httpx.Client() as client:
-        response = client.post(
-            f"{AUTH_BASE_URL}/callback",
-            json={
-                "client_id": client_id,
-                "redirect_uri": REDIRECT_URI,
-                **user_data,
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data["code"]
+    Run the complete 2-step authentication flow.
 
+    Step 1: User logs in via browser → we receive user info
+    Step 2: Exchange user info for JWT tokens
 
-def authenticate() -> TokenResponse | None:
-    """Run the full OAuth PKCE authentication flow.
-
-    Returns:
-        TokenResponse if successful, None if failed
+    Returns (UserInfo, Tokens) on success, None on failure.
     """
-    print("=" * 60)
-    print("YouVersion OAuth Authentication (PKCE Flow)")
-    print("=" * 60)
+    # Reset state
+    CallbackHandler.user_info = None
+    CallbackHandler.error = None
+    CallbackHandler.received = threading.Event()
 
-    # Generate PKCE pair
-    code_verifier, code_challenge = generate_pkce_pair()
+    # Generate PKCE
+    code_verifier, code_challenge = generate_pkce()
     state = secrets.token_urlsafe(16)
 
-    print("\n1. Starting local callback server on http://localhost:8080...")
-    server = start_callback_server()
+    # Start callback server
+    print("\n[Step 1] Starting local server on http://localhost:8080...")
+    server = socketserver.TCPServer(("", 8080), CallbackHandler)
+    server_thread = threading.Thread(target=server.handle_request, daemon=True)
+    server_thread.start()
 
-    # Build and open authorization URL
-    auth_url = build_authorization_url(CLIENT_ID, code_challenge, state)
-    print("\n2. Opening browser for authentication...")
-    print(f"   URL: {auth_url[:80]}...")
+    # Open browser for login
+    auth_url = build_auth_url(client_id, code_challenge, state)
+    print("[Step 1] Opening browser for YouVersion sign-in...")
     webbrowser.open(auth_url)
 
-    print("\n3. Waiting for callback (complete login in browser)...")
-
-    # Wait for callback
-    import time
-
-    timeout = 120  # 2 minutes
-    start = time.time()
-    while OAuthCallbackHandler.user_data is None and OAuthCallbackHandler.error is None:
-        if time.time() - start > timeout:
-            print("   Timeout waiting for callback")
-            server.server_close()
-            return None
-        time.sleep(0.5)
+    # Wait for callback (timeout 2 minutes)
+    print("[Step 1] Waiting for sign-in (complete in browser)...")
+    if not CallbackHandler.received.wait(timeout=120):
+        print("Timeout waiting for callback")
+        server.server_close()
+        return None
 
     server.server_close()
 
-    if OAuthCallbackHandler.error:
-        print(f"   Error: {OAuthCallbackHandler.error}")
+    if CallbackHandler.error:
+        print(f"Error: {CallbackHandler.error}")
         return None
 
-    user_data = OAuthCallbackHandler.user_data
-    if user_data is None:
-        print("   Error: No user data received")
+    user_info = CallbackHandler.user_info
+    if not user_info:
+        print("No user info received")
         return None
-    print(f"   Received callback for user: {user_data.get('user_name', 'Unknown')}")
+
+    print(f"[Step 1] Got user info: {user_info.user_name} ({user_info.user_email})")
 
     # Exchange for tokens
-    print("\n4. Exchanging authorization code for tokens...")
+    print("\n[Step 2] Exchanging for JWT tokens...")
     try:
-        auth_code = get_auth_code_from_callback(user_data, CLIENT_ID)
-        tokens = exchange_code_for_tokens(auth_code, code_verifier, CLIENT_ID)
-        print("   Success! Tokens received.")
-        print(f"   Access token expires in: {tokens.expires_in} seconds")
-        return tokens
+        tokens = exchange_for_tokens(user_info, code_verifier, client_id)
+        print("[Step 2] Success! Tokens received.")
+        return user_info, tokens
     except httpx.HTTPStatusError as e:
-        print(f"   Error exchanging code: {e}")
+        print(f"Error: {e}")
         return None
 
 
-if __name__ == "__main__":
-    if CLIENT_ID == "your-client-id":
-        print("Please set YOUVERSION_CLIENT_ID environment variable")
-        print("Get your client ID from: https://developers.youversion.com")
-        exit(1)
+def main() -> None:
+    """Main entry point."""
+    import os
 
-    tokens = authenticate()
+    client_id = os.environ.get("YOUVERSION_CLIENT_ID", CLIENT_ID)
 
-    if tokens:
+    if client_id == "your-client-id":
+        print("=" * 60)
+        print("YouVersion OAuth Sign-In")
+        print("=" * 60)
+        print("\nPlease set your client_id:")
+        print("  export YOUVERSION_CLIENT_ID='your-client-id'")
+        print("\nGet it from: https://developers.youversion.com")
+        return
+
+    print("=" * 60)
+    print("YouVersion OAuth Sign-In (2-Step Flow)")
+    print("=" * 60)
+
+    result = run_auth_flow(client_id)
+
+    if result:
+        user_info, tokens = result
+
         print("\n" + "=" * 60)
         print("Authentication Complete!")
         print("=" * 60)
-        print(f"\nAccess Token (first 50 chars): {tokens.access_token[:50]}...")
-        print(f"Token Type: {tokens.token_type}")
-        print(f"Expires In: {tokens.expires_in} seconds")
-        print("\nYou can now use this access_token for authenticated API calls.")
-        print("Set it as: export YOUVERSION_ACCESS_TOKEN='...'")
+
+        print("\nUser Info:")
+        print(f"  YVP ID:   {user_info.yvp_id}")
+        print(f"  Name:     {user_info.user_name}")
+        print(f"  Email:    {user_info.user_email}")
+        print(f"  Picture:  {user_info.profile_picture[:50]}..." if user_info.profile_picture else "  Picture:  (none)")
+
+        print("\nTokens:")
+        print(f"  Access:   {tokens.access_token[:40]}...")
+        print(f"  Expires:  {tokens.expires_in} seconds")
+
+        print("\nTo use the access token:")
+        print(f"  export YOUVERSION_ACCESS_TOKEN='{tokens.access_token}'")
+    else:
+        print("\nAuthentication failed.")
+
+
+if __name__ == "__main__":
+    main()
