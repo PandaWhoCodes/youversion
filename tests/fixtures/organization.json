@@ -1,0 +1,19 @@
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "parent_organization_id": null,
+  "name": "Bible Society",
+  "description": "A Bible publisher",
+  "email": "info@biblesociety.org",
+  "phone": "+1-555-1234",
+  "primary_language": "en",
+  "website_url": "https://biblesociety.org",
+  "address": {
+    "formatted_address": "123 Main St, City, ST 12345",
+    "place_id": "ChIJ123",
+    "latitude": 40.7128,
+    "longitude": -74.006,
+    "administrative_area_level_1": "New York",
+    "locality": "New York City",
+    "country": "US"
+  }
+}

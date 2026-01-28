@@ -15,6 +15,7 @@ from youversion.bibles.models import (
 from youversion.core.domain_errors import NotFoundError, ValidationError
 from youversion.languages.models import Language
 from youversion.licenses.models import License
+from youversion.organizations.models import Organization
 from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
 from youversion.core.result import Err, Ok, Result
 
@@ -281,6 +282,76 @@ class YouVersionClient:
         data = response.json()
         return Ok(PaginatedResponse[License].model_validate(data))
 
+    # Organization methods
+    def get_organizations(
+        self,
+        bible_id: int,
+        *,
+        accept_language: str = "en",
+    ) -> Result[PaginatedResponse[Organization], None]:
+        """Get organizations for a Bible."""
+        response = self._http.get(
+            "/v1/organizations",
+            params={"bible_id": bible_id},
+            headers={"Accept-Language": accept_language},
+        )
+        data = response.json()
+        return Ok(PaginatedResponse[Organization].model_validate(data))
+
+    def get_organization(
+        self,
+        organization_id: str,
+        *,
+        accept_language: str = "en",
+    ) -> Result[Organization, NotFoundError]:
+        """Get a specific organization by UUID."""
+        response = self._http.get(
+            f"/v1/organizations/{organization_id}",
+            headers={"Accept-Language": accept_language},
+        )
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="organization",
+                    identifier=organization_id,
+                    message=f"Organization {organization_id} not found",
+                )
+            )
+
+        return Ok(Organization.model_validate(response.json()))
+
+    def get_organization_bibles(
+        self,
+        organization_id: str,
+        *,
+        page_size: int | None = None,
+        page_token: str | None = None,
+    ) -> Result[PaginatedResponse[BibleVersion], NotFoundError]:
+        """Get Bibles from an organization."""
+        params: dict[str, Any] = {}
+        if page_size is not None:
+            params["page_size"] = page_size
+        if page_token is not None:
+            params["page_token"] = page_token
+
+        response = self._http.get(
+            f"/v1/organizations/{organization_id}/bibles",
+            params=params if params else None,
+        )
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="organization",
+                    identifier=organization_id,
+                    message=f"Organization {organization_id} not found",
+                )
+            )
+
+        data = response.json()
+        return Ok(PaginatedResponse[BibleVersion].model_validate(data))
+
 
 class AsyncYouVersionClient:
     """Asynchronous YouVersion API client."""
@@ -537,3 +608,73 @@ class AsyncYouVersionClient:
         response = await self._http.get("/v1/licenses", params=params)
         data = response.json()
         return Ok(PaginatedResponse[License].model_validate(data))
+
+    # Organization methods
+    async def get_organizations(
+        self,
+        bible_id: int,
+        *,
+        accept_language: str = "en",
+    ) -> Result[PaginatedResponse[Organization], None]:
+        """Get organizations for a Bible."""
+        response = await self._http.get(
+            "/v1/organizations",
+            params={"bible_id": bible_id},
+            headers={"Accept-Language": accept_language},
+        )
+        data = response.json()
+        return Ok(PaginatedResponse[Organization].model_validate(data))
+
+    async def get_organization(
+        self,
+        organization_id: str,
+        *,
+        accept_language: str = "en",
+    ) -> Result[Organization, NotFoundError]:
+        """Get a specific organization by UUID."""
+        response = await self._http.get(
+            f"/v1/organizations/{organization_id}",
+            headers={"Accept-Language": accept_language},
+        )
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="organization",
+                    identifier=organization_id,
+                    message=f"Organization {organization_id} not found",
+                )
+            )
+
+        return Ok(Organization.model_validate(response.json()))
+
+    async def get_organization_bibles(
+        self,
+        organization_id: str,
+        *,
+        page_size: int | None = None,
+        page_token: str | None = None,
+    ) -> Result[PaginatedResponse[BibleVersion], NotFoundError]:
+        """Get Bibles from an organization."""
+        params: dict[str, Any] = {}
+        if page_size is not None:
+            params["page_size"] = page_size
+        if page_token is not None:
+            params["page_token"] = page_token
+
+        response = await self._http.get(
+            f"/v1/organizations/{organization_id}/bibles",
+            params=params if params else None,
+        )
+
+        if response.status_code == 404:
+            return Err(
+                NotFoundError(
+                    resource="organization",
+                    identifier=organization_id,
+                    message=f"Organization {organization_id} not found",
+                )
+            )
+
+        data = response.json()
+        return Ok(PaginatedResponse[BibleVersion].model_validate(data))

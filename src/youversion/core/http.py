@@ -30,10 +30,12 @@ class AsyncHTTPAdapter:
             },
         )
 
-    async def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+    async def get(
+        self, path: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None
+    ) -> httpx.Response:
         """Make a GET request."""
         try:
-            response = await self._client.get(path, params=params)
+            response = await self._client.get(path, params=params, headers=headers)
         except httpx.TimeoutException as e:
             raise NetworkError(f"Request timed out: {e}") from e
         except httpx.ConnectError as e:
@@ -83,10 +85,12 @@ class SyncHTTPAdapter:
             },
         )
 
-    def get(self, path: str, params: dict[str, Any] | None = None) -> httpx.Response:
+    def get(
+        self, path: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None
+    ) -> httpx.Response:
         """Make a GET request."""
         try:
-            response = self._client.get(path, params=params)
+            response = self._client.get(path, params=params, headers=headers)
         except httpx.TimeoutException as e:
             raise NetworkError(f"Request timed out: {e}") from e
         except httpx.ConnectError as e:
