@@ -8,11 +8,16 @@ Flow:
    with user data (yvp_id, user_name, user_email, profile_picture) as query params
 2. Post user data to /auth/callback → get auth code → exchange for JWT tokens
 
-Usage:
-    export YOUVERSION_CLIENT_ID="your-client-id"
-    python examples/08_oauth_authentication.py
+SETUP REQUIRED:
+1. Go to https://platform.youversion.com/platform/apps
+2. Create or edit your app
+3. Add callback URL: http://localhost:8765/callback
+   (or http://127.0.0.1:8765/callback)
+4. Copy your API key (this is also your client_id)
 
-Get your client_id from: https://developers.youversion.com (Platform Portal)
+Usage:
+    export YOUVERSION_API_KEY="your-api-key"
+    python examples/08_oauth_authentication.py
 """
 
 import base64
@@ -28,9 +33,10 @@ from typing import Any
 
 import httpx
 
-# Configuration - get client_id from Platform Portal
-CLIENT_ID = "your-client-id"  # Replace with your client_id or set via env
-REDIRECT_URI = "http://localhost:8080/callback"
+# Configuration
+# The API key from Platform Portal is also your client_id for OAuth
+CLIENT_ID = "your-client-id"
+REDIRECT_URI = "http://localhost:8765/callback"  # Must match registered callback in Platform Portal
 AUTH_BASE_URL = "https://api.youversion.com/auth"
 
 
@@ -192,8 +198,8 @@ def run_auth_flow(client_id: str) -> tuple[UserInfo, Tokens] | None:
     state = secrets.token_urlsafe(16)
 
     # Start callback server
-    print("\n[Step 1] Starting local server on http://localhost:8080...")
-    server = socketserver.TCPServer(("", 8080), CallbackHandler)
+    print("\n[Step 1] Starting local server on http://localhost:8765...")
+    server = socketserver.TCPServer(("", 8765), CallbackHandler)
     server_thread = threading.Thread(target=server.handle_request, daemon=True)
     server_thread.start()
 
@@ -237,7 +243,8 @@ def main() -> None:
     """Main entry point."""
     import os
 
-    client_id = os.environ.get("YOUVERSION_CLIENT_ID", CLIENT_ID)
+    # Try CLIENT_ID first, then API_KEY as fallback (may be the same)
+    client_id = os.environ.get("YOUVERSION_CLIENT_ID") or os.environ.get("YOUVERSION_API_KEY") or CLIENT_ID
 
     if client_id == "your-client-id":
         print("=" * 60)
@@ -245,6 +252,8 @@ def main() -> None:
         print("=" * 60)
         print("\nPlease set your client_id:")
         print("  export YOUVERSION_CLIENT_ID='your-client-id'")
+        print("  # or if same as API key:")
+        print("  export YOUVERSION_API_KEY='your-api-key'")
         print("\nGet it from: https://developers.youversion.com")
         return
 
