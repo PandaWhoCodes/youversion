@@ -117,6 +117,7 @@ with YouVersionClient(API_KEY) as client:
     print("\n" + "=" * 60)
     print("\n5. Trying to get a non-existent organization...")
     from youversion import ServerError
+
     try:
         result = client.get_organization("00000000-0000-0000-0000-000000000000")
         if is_err(result):

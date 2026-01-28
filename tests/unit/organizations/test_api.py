@@ -55,7 +55,9 @@ class TestOrganizationsAPI:
 
     @respx.mock
     def test_get_organization_not_found(self, respx_mock: respx.MockRouter) -> None:
-        respx_mock.get("https://api.youversion.com/v1/organizations/bad-uuid").respond(status_code=404)
+        respx_mock.get("https://api.youversion.com/v1/organizations/bad-uuid").respond(
+            status_code=404
+        )
         with YouVersionClient(api_key="test-key") as client:
             result = client.get_organization("bad-uuid")
 

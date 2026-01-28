@@ -44,7 +44,9 @@ class TestVOTDAPI:
 
     @respx.mock
     def test_get_votd_invalid_day(self, respx_mock: respx.MockRouter) -> None:
-        respx_mock.get("https://api.youversion.com/v1/verse_of_the_days/999").respond(status_code=400)
+        respx_mock.get("https://api.youversion.com/v1/verse_of_the_days/999").respond(
+            status_code=400
+        )
         with YouVersionClient(api_key="test-key") as client:
             result = client.get_votd(999)
 

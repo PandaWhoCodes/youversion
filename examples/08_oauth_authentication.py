@@ -114,9 +114,9 @@ class CallbackHandler(http.server.SimpleHTTPRequestHandler):
 def generate_pkce() -> tuple[str, str]:
     """Generate PKCE code_verifier and code_challenge."""
     verifier = secrets.token_urlsafe(32)
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode()
+    challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    )
     return verifier, challenge
 
 
@@ -135,9 +135,7 @@ def build_auth_url(client_id: str, code_challenge: str, state: str) -> str:
     return f"{AUTH_BASE_URL}/authorize?" + urllib.parse.urlencode(params)
 
 
-def exchange_for_tokens(
-    user_info: UserInfo, code_verifier: str, client_id: str
-) -> Tokens:
+def exchange_for_tokens(user_info: UserInfo, code_verifier: str, client_id: str) -> Tokens:
     """
     Step 2: Exchange user data for tokens.
 

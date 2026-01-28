@@ -28,6 +28,7 @@ def _fmt_countries(countries: list[str] | None) -> str:
         result += "..."
     return result
 
+
 if not API_KEY:
     print("Please set YOUVERSION_API_KEY environment variable")
     exit(1)
@@ -86,16 +87,16 @@ with YouVersionClient(API_KEY) as client:
    Language ID:        {lang.id}
    ISO 639 Code:       {lang.language}
    Text Direction:     {lang.text_direction}
-   Script:             {lang.script or 'N/A'} ({lang.script_name or 'N/A'})
+   Script:             {lang.script or "N/A"} ({lang.script_name or "N/A"})
 
-   Available Scripts:  {', '.join(lang.scripts) if lang.scripts else 'N/A'}
-   Variants:           {', '.join(lang.variants) if lang.variants else 'N/A'}
+   Available Scripts:  {", ".join(lang.scripts) if lang.scripts else "N/A"}
+   Variants:           {", ".join(lang.variants) if lang.variants else "N/A"}
    Countries:          {_fmt_countries(lang.countries)}
-   Aliases:            {', '.join(lang.aliases) if lang.aliases else 'N/A'}
+   Aliases:            {", ".join(lang.aliases) if lang.aliases else "N/A"}
 
    Writing Population: {lang.writing_population:,}
    Speaking Population:{lang.speaking_population:,}
-   Default Bible ID:   {lang.default_bible_id or 'N/A'}
+   Default Bible ID:   {lang.default_bible_id or "N/A"}
 """)
 
         if lang.display_names:

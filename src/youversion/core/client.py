@@ -83,9 +83,7 @@ class YouVersionClient:
         return Ok(BibleVersion.model_validate(response.json()))
 
     # Book methods
-    def get_books(
-        self, version_id: int
-    ) -> Result[PaginatedResponse[BibleBook], NotFoundError]:
+    def get_books(self, version_id: int) -> Result[PaginatedResponse[BibleBook], NotFoundError]:
         """Get all books in a Bible version."""
         response = self._http.get(f"/v1/bibles/{version_id}/books")
 
@@ -157,9 +155,7 @@ class YouVersionClient:
         self, version_id: int, book: str, chapter: int
     ) -> Result[PaginatedResponse[BibleVerse], NotFoundError]:
         """Get all verses in a chapter."""
-        response = self._http.get(
-            f"/v1/bibles/{version_id}/books/{book}/chapters/{chapter}/verses"
-        )
+        response = self._http.get(f"/v1/bibles/{version_id}/books/{book}/chapters/{chapter}/verses")
 
         if response.status_code == 404:
             return Err(
