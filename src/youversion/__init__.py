@@ -12,6 +12,7 @@ from youversion.bibles import (
 from youversion.languages.models import Language
 from youversion.licenses.models import License
 from youversion.organizations.models import Organization, OrganizationAddress
+from youversion.votd.models import VerseOfTheDay
 from youversion.core import (
     AsyncYouVersionClient,
     AuthenticationError,
@@ -52,6 +53,8 @@ __all__ = [
     # Organization models
     "Organization",
     "OrganizationAddress",
+    # VOTD models
+    "VerseOfTheDay",
     # Result types
     "Ok",
     "Err",

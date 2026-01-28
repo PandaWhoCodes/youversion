@@ -16,6 +16,7 @@ from youversion.core.domain_errors import NotFoundError, ValidationError
 from youversion.languages.models import Language
 from youversion.licenses.models import License
 from youversion.organizations.models import Organization
+from youversion.votd.models import VerseOfTheDay
 from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
 from youversion.core.result import Err, Ok, Result
 
@@ -352,6 +353,27 @@ class YouVersionClient:
         data = response.json()
         return Ok(PaginatedResponse[BibleVersion].model_validate(data))
 
+    # VOTD methods
+    def get_all_votd(self) -> Result[PaginatedResponse[VerseOfTheDay], None]:
+        """Get all verses of the day (1-366)."""
+        response = self._http.get("/v1/verse_of_the_days")
+        data = response.json()
+        return Ok(PaginatedResponse[VerseOfTheDay].model_validate(data))
+
+    def get_votd(self, day: int) -> Result[VerseOfTheDay, ValidationError]:
+        """Get verse of the day for a specific day (1-366)."""
+        response = self._http.get(f"/v1/verse_of_the_days/{day}")
+
+        if response.status_code == 400:
+            return Err(
+                ValidationError(
+                    field="day",
+                    reason=f"Invalid day {day}. Must be 1-366.",
+                )
+            )
+
+        return Ok(VerseOfTheDay.model_validate(response.json()))
+
 
 class AsyncYouVersionClient:
     """Asynchronous YouVersion API client."""
@@ -678,3 +700,24 @@ class AsyncYouVersionClient:
 
         data = response.json()
         return Ok(PaginatedResponse[BibleVersion].model_validate(data))
+
+    # VOTD methods
+    async def get_all_votd(self) -> Result[PaginatedResponse[VerseOfTheDay], None]:
+        """Get all verses of the day (1-366)."""
+        response = await self._http.get("/v1/verse_of_the_days")
+        data = response.json()
+        return Ok(PaginatedResponse[VerseOfTheDay].model_validate(data))
+
+    async def get_votd(self, day: int) -> Result[VerseOfTheDay, ValidationError]:
+        """Get verse of the day for a specific day (1-366)."""
+        response = await self._http.get(f"/v1/verse_of_the_days/{day}")
+
+        if response.status_code == 400:
+            return Err(
+                ValidationError(
+                    field="day",
+                    reason=f"Invalid day {day}. Must be 1-366.",
+                )
+            )
+
+        return Ok(VerseOfTheDay.model_validate(response.json()))
