@@ -42,7 +42,7 @@ with YouVersionClient(API_KEY) as client:
         print(f"   Passage ID: {votd.passage_id}")
 
         # Fetch the actual passage text
-        print(f"\n   Fetching passage text (NIV)...")
+        print("\n   Fetching passage text (NIV)...")
         passage_result = client.get_passage(111, votd.passage_id)  # 111 = NIV
 
         if is_ok(passage_result):
@@ -116,7 +116,7 @@ with YouVersionClient(API_KEY) as client:
 
     if is_err(result):
         error = result.error
-        print(f"   Expected validation error:")
+        print("   Expected validation error:")
         print(f"   Field: {error.field}")
         print(f"   Reason: {error.reason}")
     else:

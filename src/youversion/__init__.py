@@ -9,10 +9,6 @@ from youversion.bibles import (
     BibleVersion,
     PaginatedResponse,
 )
-from youversion.languages.models import Language
-from youversion.licenses.models import License
-from youversion.organizations.models import Organization, OrganizationAddress
-from youversion.votd.models import VerseOfTheDay
 from youversion.core import (
     AsyncYouVersionClient,
     AuthenticationError,
@@ -29,8 +25,12 @@ from youversion.core import (
     is_err,
     is_ok,
 )
+from youversion.languages.models import Language
+from youversion.licenses.models import License
+from youversion.organizations.models import Organization, OrganizationAddress
+from youversion.votd.models import VerseOfTheDay
 
-__version__ = "0.1.2"
+__version__ = "0.3.1"
 
 __all__ = [
     # Version

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
 from youversion.bibles.models import (
     BibleBook,
@@ -13,15 +13,12 @@ from youversion.bibles.models import (
     PaginatedResponse,
 )
 from youversion.core.domain_errors import NotFoundError, ValidationError
+from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
+from youversion.core.result import Err, Ok, Result
 from youversion.languages.models import Language
 from youversion.licenses.models import License
 from youversion.organizations.models import Organization
 from youversion.votd.models import VerseOfTheDay
-from youversion.core.http import AsyncHTTPAdapter, SyncHTTPAdapter
-from youversion.core.result import Err, Ok, Result
-
-if TYPE_CHECKING:
-    pass
 
 DEFAULT_BASE_URL = "https://api.youversion.com"
 DEFAULT_TIMEOUT = 30.0

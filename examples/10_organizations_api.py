@@ -44,7 +44,10 @@ with YouVersionClient(API_KEY) as client:
             print(f"   Organization: {org.name}")
             print(f"   ID:           {org.id}")
             if org.description:
-                print(f"   Description:  {org.description[:80]}..." if len(org.description) > 80 else f"   Description:  {org.description}")
+                desc = org.description
+                if len(desc) > 80:
+                    desc = desc[:80] + "..."
+                print(f"   Description:  {desc}")
             print(f"   Website:      {org.website_url}")
             print(f"   Language:     {org.primary_language}")
             if org.email:
@@ -63,7 +66,7 @@ with YouVersionClient(API_KEY) as client:
 
     # 2. Get organizations with Spanish localization
     print("=" * 60)
-    print(f"\n2. Getting organizations in Spanish (Accept-Language: es)...")
+    print("\n2. Getting organizations in Spanish (Accept-Language: es)...")
     result = client.get_organizations(bible_id=NIV_BIBLE_ID, accept_language="es")
 
     if is_ok(result):
@@ -78,7 +81,7 @@ with YouVersionClient(API_KEY) as client:
     # 3. Get specific organization details
     if org_id:
         print("=" * 60)
-        print(f"\n3. Getting organization details by ID...")
+        print("\n3. Getting organization details by ID...")
         print(f"   ID: {org_id}")
         result = client.get_organization(org_id)
 
@@ -96,7 +99,7 @@ with YouVersionClient(API_KEY) as client:
     # 4. Get Bibles from an organization
     if org_id:
         print("\n" + "=" * 60)
-        print(f"\n4. Getting Bibles published by this organization...")
+        print("\n4. Getting Bibles published by this organization...")
         result = client.get_organization_bibles(org_id)
 
         if is_ok(result):
@@ -123,7 +126,7 @@ with YouVersionClient(API_KEY) as client:
         else:
             print("   Unexpectedly found the organization!")
     except ServerError as e:
-        print(f"   Server returned error (API returns 500 for invalid UUIDs)")
+        print("   Server returned error (API returns 500 for invalid UUIDs)")
         print(f"   Error: {e}")
 
 print("\n" + "=" * 60)

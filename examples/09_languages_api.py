@@ -18,6 +18,16 @@ from youversion import YouVersionClient, is_err, is_ok
 
 API_KEY = os.environ.get("YOUVERSION_API_KEY")
 
+
+def _fmt_countries(countries: list[str] | None) -> str:
+    """Format countries list, truncating if more than 5."""
+    if not countries:
+        return "N/A"
+    result = ", ".join(countries[:5])
+    if len(countries) > 5:
+        result += "..."
+    return result
+
 if not API_KEY:
     print("Please set YOUVERSION_API_KEY environment variable")
     exit(1)
@@ -80,7 +90,7 @@ with YouVersionClient(API_KEY) as client:
 
    Available Scripts:  {', '.join(lang.scripts) if lang.scripts else 'N/A'}
    Variants:           {', '.join(lang.variants) if lang.variants else 'N/A'}
-   Countries:          {', '.join(lang.countries[:5]) if lang.countries else 'N/A'}{'...' if len(lang.countries) > 5 else ''}
+   Countries:          {_fmt_countries(lang.countries)}
    Aliases:            {', '.join(lang.aliases) if lang.aliases else 'N/A'}
 
    Writing Population: {lang.writing_population:,}

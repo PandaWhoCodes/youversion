@@ -66,7 +66,12 @@ class TestOrganizationsAPI:
     def test_get_organization_bibles(self, respx_mock: respx.MockRouter) -> None:
         org_id = "550e8400-e29b-41d4-a716-446655440000"
         respx_mock.get(f"https://api.youversion.com/v1/organizations/{org_id}/bibles").respond(
-            json={"data": [{"id": 111, "abbreviation": "NIV", "title": "NIV Bible", "language_tag": "en"}], "next_page_token": None}
+            json={
+                "data": [
+                    {"id": 111, "abbreviation": "NIV", "title": "NIV Bible", "language_tag": "en"}
+                ],
+                "next_page_token": None,
+            }
         )
         with YouVersionClient(api_key="test-key") as client:
             result = client.get_organization_bibles(org_id)

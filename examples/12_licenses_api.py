@@ -6,6 +6,10 @@ This example demonstrates how to:
 2. Check if you have agreed to a license
 3. Get all available licenses for a Bible
 
+NOTE: The Licenses API and Highlights API are not yet publicly accessible.
+These APIs will be available later as per YouVersion platform developers.
+Contact YouVersion developer support for updates on availability.
+
 IMPORTANT: The Licenses API may require:
 - OAuth authentication (user sign-in) rather than just API key
 - Special permissions granted to your app
@@ -23,7 +27,7 @@ Usage:
 
 import os
 
-from youversion import YouVersionClient, is_ok
+from youversion import AuthenticationError, YouVersionClient, is_ok
 
 API_KEY = os.environ.get("YOUVERSION_API_KEY")
 DEVELOPER_ID = os.environ.get("YOUVERSION_DEVELOPER_ID")
@@ -46,8 +50,6 @@ print("=" * 60)
 # Common Bible IDs for testing
 NIV_BIBLE_ID = 111
 KJV_BIBLE_ID = 1
-
-from youversion import AuthenticationError
 
 with YouVersionClient(API_KEY) as client:
     # 1. Get licenses for NIV Bible
@@ -87,7 +89,7 @@ with YouVersionClient(API_KEY) as client:
             # Show license HTML preview (first 200 chars)
             if lic.html:
                 preview = lic.html[:200].replace("\n", " ")
-                print(f"   License text preview:")
+                print("   License text preview:")
                 print(f"   {preview}...")
             print()
     else:

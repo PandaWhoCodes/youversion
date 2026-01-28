@@ -100,7 +100,10 @@ class CallbackHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        html = f"<html><body style='font-family:sans-serif;text-align:center;padding:50px'><h2>{message}</h2></body></html>"
+        html = (
+            f"<html><body style='font-family:sans-serif;text-align:center;"
+            f"padding:50px'><h2>{message}</h2></body></html>"
+        )
         self.wfile.write(html.encode())
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -271,7 +274,10 @@ def main() -> None:
         print(f"  YVP ID:   {user_info.yvp_id}")
         print(f"  Name:     {user_info.user_name}")
         print(f"  Email:    {user_info.user_email}")
-        print(f"  Picture:  {user_info.profile_picture[:50]}..." if user_info.profile_picture else "  Picture:  (none)")
+        if user_info.profile_picture:
+            print(f"  Picture:  {user_info.profile_picture[:50]}...")
+        else:
+            print("  Picture:  (none)")
 
         print("\nTokens:")
         print(f"  Access:   {tokens.access_token[:40]}...")
